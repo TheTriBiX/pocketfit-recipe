@@ -1,0 +1,5 @@
+services:
+  smart-recipe-back:
+    image: 'pocket-fit-recipes'
+    ports:
+      - '50051:50051'

@@ -1,0 +1,97 @@
+syntax = "proto3";
+
+package allergy;
+
+service AllergyController {
+  rpc List(AllergyListRequest) returns (AllergyListResponse) {}
+  rpc Create(AllergyCreateRequest) returns (AllergyCreateResponse) {}
+  rpc Retrieve(AllergyRetrieveRequest) returns (AllergyRetrieveResponse) {}
+  rpc Update(AllergyUpdateRequest) returns (AllergyUpdateResponse) {}
+  rpc Destroy(AllergyDestroyRequest) returns (AllergyDestroyResponse) {}
+}
+
+
+enum AllergyListErrorCode {
+  ALLERGY_LIST_ERROR_CODE_UNSPECIFIED = 0;
+  ALLERGY_LIST_ERROR_CODE_VALIDATION = 1;
+}
+
+enum AllergyCreateErrorCode {
+  ALLERGY_CREATE_ERROR_CODE_UNSPECIFIED = 0;
+  ALLERGY_CREATE_ERROR_CODE_VALIDATION = 1;
+  ALLERGY_CREATE_ERROR_CODE_ALREADY_EXIST = 2;
+}
+
+enum AllergyRetrieveErrorCode {
+  ALLERGY_RETRIEVE_ERROR_CODE_UNSPECIFIED = 0;
+  ALLERGY_RETRIEVE_ERROR_CODE_VALIDATION = 1;
+  ALLERGY_RETRIEVE_ERROR_CODE_NOT_FOUND = 2;
+}
+
+enum AllergyUpdateErrorCode{
+  ALLERGY_UPDATE_ERROR_CODE_UNSPECIFIED = 0;
+  ALLERGY_UPDATE_ERROR_CODE_VALIDATION = 1;
+  ALLERGY_UPDATE_ERROR_CODE_NOT_FOUND = 2;
+}
+
+enum AllergyDestroyErrorCode{
+  ALLERGY_DESTROY_ERROR_CODE_UNSPECIFIED = 0;
+  ALLERGY_DESTROY_ERROR_CODE_VALIDATION = 1;
+  ALLERGY_DESTROY_ERROR_CODE_NOT_FOUND = 2;
+}
+
+message Allergy {
+  int32 id = 1;
+  string name = 2;
+  repeated Translation translations = 3;
+}
+
+message Translation{
+   map<string, string> language = 1;
+}
+
+message AllergyListRequest {
+  optional string language = 1;
+}
+
+message AllergyCreateRequest{
+  string name = 1;
+  repeated Translation translations = 2;
+}
+
+message AllergyRetrieveRequest {
+  int32 id = 1;
+  optional string language = 2;
+}
+
+message AllergyUpdateRequest{
+  Allergy allergy = 1;
+}
+
+message AllergyDestroyRequest{
+  int32 id = 1;
+}
+
+message AllergyListResponse{
+  repeated Allergy allergy = 1;
+  AllergyListErrorCode error_code = 2;
+}
+
+message AllergyCreateResponse {
+  Allergy allergy = 1;
+  AllergyCreateErrorCode error_code = 2;
+}
+
+message AllergyRetrieveResponse{
+  Allergy allergy = 1;
+  AllergyRetrieveErrorCode error_code = 2;
+}
+
+message AllergyUpdateResponse{
+  Allergy allergy = 1;
+  AllergyUpdateErrorCode error_code = 2;
+}
+
+message AllergyDestroyResponse{
+  AllergyDestroyErrorCode error_code = 1;
+}

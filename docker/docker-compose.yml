@@ -1,0 +1,24 @@
+version: '3.7'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    command: ["postgres", "-c", "log_statement=all"]
+    ports:
+      - ${PG_PORT}:5432
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+    environment:
+      - DEBUG=true
+      - POSTGRES_DB=${PG_DATABASE}
+      - POSTGRES_USER=${PG_USERNAME}
+      - POSTGRES_PASSWORD=${PG_PASSWORD}
+    healthcheck:
+      test: pg_isready -d ${PG_DATABASE} -U ${PG_USERNAME}
+      interval: 5s
+      timeout: 3s
+      retries: 3
+
+
+volumes:
+    postgres_data: {}
