@@ -11,6 +11,7 @@ service AllergyController {
 }
 
 
+
 enum AllergyListErrorCode {
   ALLERGY_LIST_ERROR_CODE_UNSPECIFIED = 0;
   ALLERGY_LIST_ERROR_CODE_VALIDATION = 1;
@@ -47,7 +48,7 @@ message Allergy {
 }
 
 message Translation{
-   map<string, string> language = 1;
+  map<string, string> languages = 1;
 }
 
 message AllergyListRequest {
@@ -95,3 +96,185 @@ message AllergyUpdateResponse{
 message AllergyDestroyResponse{
   AllergyDestroyErrorCode error_code = 1;
 }
+
+service UserAllergyController{
+  rpc List(ListUserAllergyRequest) returns (ListUserAllergyResponse) {}
+  rpc Create(CreateUserAllergyRequest) returns (CreateUserAllergyResponse) {}
+  rpc Destroy(DestroyUserAllergyRequest) returns (DestroyUserAllergyResponse) {}
+}
+
+enum UserAllergyListErrorCode {
+  USER_ALLERGY_LIST_ERROR_CODE_UNSPECIFIED = 0;
+  USER_ALLERGY_LIST_ERROR_CODE_VALIDATION = 1;
+}
+
+enum UserAllergyCreateErrorCode {
+  USER_ALLERGY_CREATE_ERROR_CODE_UNSPECIFIED = 0;
+  USER_ALLERGY_CREATE_ERROR_CODE_VALIDATION = 1;
+  USER_ALLERGY_CREATE_ERROR_CODE_NOT_FOUND = 2;
+  USER_ALLERGY_CREATE_ERROR_CODE_ALREADY_EXIST = 3;
+}
+
+enum UserAllergyDestroyErrorCode {
+  USER_ALLERGY_DESTROY_ERROR_CODE_UNSPECIFIED = 0;
+  USER_ALLERGY_DESTROY_ERROR_CODE_VALIDATION = 1;
+  USER_ALLERGY_DESTROY_ERROR_CODE_NOT_FOUND = 2;
+}
+
+message DestroyUserAllergyRequest {
+  string user_id = 1;
+  int32 allergy_id = 2;
+}
+
+message DestroyUserAllergyResponse {
+  UserAllergyDestroyErrorCode error_code = 1;
+}
+
+message CreateUserAllergyRequest {
+  string user_id = 1;
+  int32 allergy_id = 2;
+}
+
+message CreateUserAllergyResponse{
+  string user_id = 1;
+  int32 allergy_id = 2;
+  UserAllergyCreateErrorCode error_code = 3;
+}
+
+message ListUserAllergyRequest{
+  string user_id = 1;
+}
+
+message ListUserAllergyResponse{
+  string user_id = 1;
+  UserAllergyListErrorCode error_code = 2;
+  repeated int32 allergies_id = 3;
+}
+
+service IngredientController{
+  rpc List(IngredientListRequest) returns (IngredientListResponse) {}
+  rpc Create(IngredientCreateRequest) returns (IngredientCreateResponse) {}
+  rpc Retrieve(IngredientRetrieveRequest) returns (IngredientRetrieveResponse) {}
+  rpc Destroy(IngredientDestroyRequest) returns (IngredientDestroyResponse) {}
+  rpc Update(IngredientUpdateRequest) returns (IngredientUpdateResponse) {}
+  rpc AddAllergy(IngredientAddAllergyRequest) returns (IngredientAddAllergyResponse) {}
+  rpc DestroyAllergy(IngredientDestroyAllergyRequest) returns (IngredientDestroyAllergyResponse) {}
+}
+
+message IngredientDestroyAllergyRequest{
+  int32 ingredient_id = 1;
+  int32 allergy_id = 2;
+}
+
+message IngredientDestroyAllergyResponse{
+  int32 ingredient_id = 1;
+  int32 allergy_id = 2;
+  IngredientDestroyAllergyErrorCode error_code = 3;
+}
+
+message IngredientAddAllergyRequest{
+  int32 ingredient_id = 1;
+  int32 allergy_id = 2;
+}
+
+message IngredientAddAllergyResponse{
+  int32 ingredient_id = 1;
+  int32 allergy_id = 2;
+  IngredientAddAllergyErrorCode error_code = 3;
+}
+
+enum IngredientDestroyAllergyErrorCode{
+  INGREDIENT_DESTROY_ALLERGY_ERROR_CODE_UNSPECIFIED = 0;
+  INGREDIENT_DESTROY_ALLERGY_ERROR_CODE_VALIDATION = 1;
+  INGREDIENT_DESTROY_ALLERGY_ERROR_CODE_NOT_FOUND = 2;
+}
+
+enum IngredientAddAllergyErrorCode{
+  INGREDIENT_ADD_ALLERGY_ERROR_CODE_UNSPECIFIED = 0;
+  INGREDIENT_ADD_ALLERGY_ERROR_CODE_VALIDATION = 1;
+  INGREDIENT_ADD_ALLERGY_ERROR_CODE_ALLERGY_NOT_FOUND = 2;
+  INGREDIENT_ADD_ALLERGY_ERROR_CODE_INGREDIENT_NOT_FOUND = 3;
+  INGREDIENT_ADD_ALLERGY_ERROR_CODE_ALREADY_EXIST = 4;
+}
+
+message Ingredient{
+  int32 id = 1;
+  string name = 2;
+  repeated Translation translations = 3;
+}
+
+message IngredientListRequest{
+  optional string language = 1;
+}
+
+message IngredientListResponse{
+  repeated Ingredient ingredients = 1;
+  IngredientListErrorCode error_code = 2;
+}
+
+message IngredientCreateRequest{
+  string name = 1;
+  repeated Translation translations = 2;
+}
+
+message IngredientCreateResponse{
+  Ingredient ingredient = 1;
+  IngredientCreateErrorCode error_code = 2;
+}
+
+message IngredientRetrieveRequest{
+  int32 ingredient_id = 1;
+  string language = 2;
+}
+
+message IngredientRetrieveResponse{
+  Ingredient ingredient = 1;
+  IngredientRetrieveErrorCode error_code = 2;
+}
+
+message IngredientDestroyRequest{
+  int32 ingredient_id = 1;
+}
+
+message IngredientDestroyResponse{
+  IngredientDestroyErrorCode error_code = 1;
+}
+
+message IngredientUpdateRequest{
+  Ingredient ingredient = 1;
+}
+
+message IngredientUpdateResponse{
+  Ingredient ingredient = 1;
+  IngredientUpdateErrorCode error_code = 2;
+}
+
+enum IngredientUpdateErrorCode{
+  INGREDIENT_UPDATE_ERROR_CODE_UNSPECIFIED = 0;
+  INGREDIENT_UPDATE_ERROR_CODE_VALIDATION = 1;
+  INGREDIENT_UPDATE_ERROR_CODE_NOT_FOUND = 2;
+}
+
+enum IngredientListErrorCode{
+  INGREDIENT_LIST_ERROR_CODE_UNSPECIFIED = 0;
+  INGREDIENT_LIST_ERROR_CODE_VALIDATION = 1;
+}
+
+enum IngredientRetrieveErrorCode{
+  INGREDIENT_RESPONSE_ERROR_CODE_UNSPECIFIED = 0;
+  INGREDIENT_RESPONSE_ERROR_CODE_VALIDATION = 1;
+  INGREDIENT_RESPONSE_ERROR_CODE_NOT_FOUND = 2;
+}
+
+enum IngredientCreateErrorCode{
+  INGREDIENT_CREATE_ERROR_CODE_UNSPECIFIED = 0;
+  INGREDIENT_CREATE_ERROR_CODE_VALIDATION = 1;
+  INGREDIENT_CREATE_ERROR_CODE_ALREADY_EXIST = 2;
+}
+
+enum IngredientDestroyErrorCode{
+  INGREDIENT_DESTROY_ERROR_CODE_UNSPECIFIED = 0;
+  INGREDIENT_DESTROY_ERROR_CODE_VALIDATION = 1;
+  INGREDIENT_DESTROY_ERROR_CODE_NOT_FOUND = 2;
+}
+
