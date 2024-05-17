@@ -7,6 +7,5 @@ RUN pip3 install -r requirements.txt --no-cache-dir
 RUN pip3 install psycopg2-binary
 COPY . /app
 ENTRYPOINT ["python3"]
-RUN yes | python3 manage.py makemigrations
 RUN python3 manage.py migrate
 CMD ["manage.py", "grpcrunserver", "0.0.0.0:50051", "--dev"]
