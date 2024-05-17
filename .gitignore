@@ -140,3 +140,5 @@ GitHub.sublime-settings
 docker/.env
 docker/postgres_data
 /Scripts/
+
+.DS-Store
