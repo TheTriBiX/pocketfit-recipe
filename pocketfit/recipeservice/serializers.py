@@ -5,24 +5,6 @@ import json
 from google.protobuf.json_format import MessageToDict, ParseDict, MessageToJson, Parse
 
 
-class ProtoSerializer(proto_serializers.BaseProtoSerializer, proto_serializers.Serializer):
-
-    def message_to_data(self, message):
-        """Protobuf message -> Dict of python primitive datatypes.
-        """
-        return MessageToDict(
-            message, including_default_value_fields=True,
-            preserving_proto_field_name=True
-        )
-
-    def data_to_message(self, data):
-        """Protobuf message <- Dict of python primitive datatypes."""
-        return ParseDict(
-            data, self.Meta.proto_class(),
-            ignore_unknown_fields=True
-        )
-
-
 class AllergyCreateSerializer:
     def message_to_data(self, message):
         return MessageToDict(message, including_default_value_fields=True,
@@ -66,3 +48,93 @@ class AllergyDestroySerializer:
 
     def data_to_message(self, data):
         return Parse(json.dumps(data), allergy_pb2.AllergyDestroyResponse())
+
+
+class UserAllergyListSerializer:
+    def message_to_data(self, message):
+        return MessageToDict(message, including_default_value_fields=True,
+                             preserving_proto_field_name=True)
+
+    def data_to_message(self, data):
+        return Parse(json.dumps(data), allergy_pb2.ListUserAllergyResponse())
+
+
+class UserAllergyCreateSerializer:
+    def message_to_data(self, message):
+        return MessageToDict(message, including_default_value_fields=True,
+                             preserving_proto_field_name=True)
+
+    def data_to_message(self, data):
+        return Parse(json.dumps(data), allergy_pb2.CreateUserAllergyResponse())
+
+
+class UserAllergyDestroySerializer:
+    def message_to_data(self, message):
+        return MessageToDict(message, including_default_value_fields=True,
+                             preserving_proto_field_name=True)
+
+    def data_to_message(self, data):
+        return Parse(json.dumps(data), allergy_pb2.DestroyUserAllergyResponse())
+
+
+class IngredientCreateSerializer:
+    def message_to_data(self, message):
+        return MessageToDict(message, including_default_value_fields=True,
+                             preserving_proto_field_name=True)
+
+    def data_to_message(self, data):
+        return Parse(json.dumps(data), allergy_pb2.IngredientCreateResponse())
+
+
+class IngredientListSerializer:
+    def message_to_data(self, message):
+        return MessageToDict(message, including_default_value_fields=True,
+                             preserving_proto_field_name=True)
+
+    def data_to_message(self, data):
+        return Parse(json.dumps(data), allergy_pb2.IngredientListResponse())
+
+
+class IngredientRetrieveSerializer:
+    def message_to_data(self, message):
+        return MessageToDict(message, including_default_value_fields=True,
+                             preserving_proto_field_name=True)
+
+    def data_to_message(self, data):
+        return Parse(json.dumps(data), allergy_pb2.IngredientRetrieveResponse())
+
+
+class IngredientUpdateSerializer:
+    def message_to_data(self, message):
+        return MessageToDict(message, including_default_value_fields=True,
+                             preserving_proto_field_name=True)
+
+    def data_to_message(self, data):
+        return Parse(json.dumps(data), allergy_pb2.IngredientRetrieveResponse())
+
+
+class IngredientDestroySerializer:
+    def message_to_data(self, message):
+        return MessageToDict(message, including_default_value_fields=True,
+                             preserving_proto_field_name=True)
+
+    def data_to_message(self, data):
+        return Parse(json.dumps(data), allergy_pb2.IngredientDestroyResponse())
+
+
+class IngredientAddAllergySerializer:
+    def message_to_data(self, message):
+        return MessageToDict(message, including_default_value_fields=True,
+                             preserving_proto_field_name=True)
+
+    def data_to_message(self, data):
+        return Parse(json.dumps(data), allergy_pb2.IngredientAddAllergyResponse())
+
+
+class IngredientDestroyAllergySerializer:
+    def message_to_data(self, message):
+        return MessageToDict(message, including_default_value_fields=True,
+                             preserving_proto_field_name=True)
+
+    def data_to_message(self, data):
+        return Parse(json.dumps(data), allergy_pb2.IngredientDestroyAllergyResponse())
