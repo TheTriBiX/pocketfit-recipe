@@ -7,7 +7,7 @@ from google.protobuf.json_format import MessageToDict, ParseDict, MessageToJson,
 
 class AllergyCreateSerializer:
     def message_to_data(self, message):
-        return MessageToDict(message, including_default_value_fields=True,
+        return MessageToDict(message,
                              preserving_proto_field_name=True)
 
     def data_to_message(self, data):
@@ -16,7 +16,7 @@ class AllergyCreateSerializer:
 
 class AllergyListSerializer:
     def message_to_data(self, message):
-        return MessageToDict(message, including_default_value_fields=True,
+        return MessageToDict(message,
                              preserving_proto_field_name=True)
 
     def data_to_message(self, data):
@@ -25,7 +25,7 @@ class AllergyListSerializer:
 
 class AllergyRetrieveSerializer:
     def message_to_data(self, message):
-        return MessageToDict(message, including_default_value_fields=True,
+        return MessageToDict(message,
                              preserving_proto_field_name=True)
 
     def data_to_message(self, data):
@@ -34,7 +34,7 @@ class AllergyRetrieveSerializer:
 
 class AllergyUpdateSerializer:
     def message_to_data(self, message):
-        return MessageToDict(message, including_default_value_fields=True,
+        return MessageToDict(message,
                              preserving_proto_field_name=True)
 
     def data_to_message(self, data):
@@ -43,7 +43,7 @@ class AllergyUpdateSerializer:
 
 class AllergyDestroySerializer:
     def message_to_data(self, message):
-        return MessageToDict(message, including_default_value_fields=True,
+        return MessageToDict(message,
                              preserving_proto_field_name=True)
 
     def data_to_message(self, data):
@@ -52,7 +52,7 @@ class AllergyDestroySerializer:
 
 class UserAllergyListSerializer:
     def message_to_data(self, message):
-        return MessageToDict(message, including_default_value_fields=True,
+        return MessageToDict(message,
                              preserving_proto_field_name=True)
 
     def data_to_message(self, data):
@@ -61,7 +61,7 @@ class UserAllergyListSerializer:
 
 class UserAllergyCreateSerializer:
     def message_to_data(self, message):
-        return MessageToDict(message, including_default_value_fields=True,
+        return MessageToDict(message,
                              preserving_proto_field_name=True)
 
     def data_to_message(self, data):
@@ -70,7 +70,7 @@ class UserAllergyCreateSerializer:
 
 class UserAllergyDestroySerializer:
     def message_to_data(self, message):
-        return MessageToDict(message, including_default_value_fields=True,
+        return MessageToDict(message,
                              preserving_proto_field_name=True)
 
     def data_to_message(self, data):
@@ -79,7 +79,7 @@ class UserAllergyDestroySerializer:
 
 class IngredientCreateSerializer:
     def message_to_data(self, message):
-        return MessageToDict(message, including_default_value_fields=True,
+        return MessageToDict(message,
                              preserving_proto_field_name=True)
 
     def data_to_message(self, data):
@@ -88,7 +88,7 @@ class IngredientCreateSerializer:
 
 class IngredientListSerializer:
     def message_to_data(self, message):
-        return MessageToDict(message, including_default_value_fields=True,
+        return MessageToDict(message,
                              preserving_proto_field_name=True)
 
     def data_to_message(self, data):
@@ -97,7 +97,7 @@ class IngredientListSerializer:
 
 class IngredientRetrieveSerializer:
     def message_to_data(self, message):
-        return MessageToDict(message, including_default_value_fields=True,
+        return MessageToDict(message,
                              preserving_proto_field_name=True)
 
     def data_to_message(self, data):
@@ -106,7 +106,7 @@ class IngredientRetrieveSerializer:
 
 class IngredientUpdateSerializer:
     def message_to_data(self, message):
-        return MessageToDict(message, including_default_value_fields=True,
+        return MessageToDict(message,
                              preserving_proto_field_name=True)
 
     def data_to_message(self, data):
@@ -115,7 +115,7 @@ class IngredientUpdateSerializer:
 
 class IngredientDestroySerializer:
     def message_to_data(self, message):
-        return MessageToDict(message, including_default_value_fields=True,
+        return MessageToDict(message,
                              preserving_proto_field_name=True)
 
     def data_to_message(self, data):
@@ -124,7 +124,7 @@ class IngredientDestroySerializer:
 
 class IngredientAddAllergySerializer:
     def message_to_data(self, message):
-        return MessageToDict(message, including_default_value_fields=True,
+        return MessageToDict(message,
                              preserving_proto_field_name=True)
 
     def data_to_message(self, data):
@@ -133,7 +133,7 @@ class IngredientAddAllergySerializer:
 
 class IngredientDestroyAllergySerializer:
     def message_to_data(self, message):
-        return MessageToDict(message, including_default_value_fields=True,
+        return MessageToDict(message,
                              preserving_proto_field_name=True)
 
     def data_to_message(self, data):

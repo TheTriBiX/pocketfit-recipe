@@ -46,10 +46,10 @@ class AllergyService(Service):
             response['allergy'] = [{'id': allergy.pk,
                                     'name': allergy.name,
                                     'translations': allergy.translations} for allergy in Allergy.objects.all()]
-        elif 'language' in data:
+        elif 'languages' in data:
             response['allergy'] = [{'id': allergy.pk,
                                     'name': allergy.name,
-                                    'translations': find_translation(data['language'], allergy.translations)}
+                                    'translations': find_translation(data['languages'], allergy.translations)}
                                    for allergy in Allergy.objects.all()]
         else:
             response['error_code'] = 1
