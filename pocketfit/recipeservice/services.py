@@ -5,13 +5,38 @@ from django_grpc_framework.services import Service
 from recipeservice.models import Allergy, UserAllergy, Ingredients, IngredientsAllergy
 from recipeservice.serializers import *
 from django.db import IntegrityError
-
+from uuid import UUID
+import yaml
 
 def find_translation(target, translations):
     for translate in translations:
         if target in translate['languages']:
             return [translate]
 
+
+def is_uuid(uuid):
+    try:
+        UUID(uuid)
+        return True
+    except ValueError:
+        return False
+
+
+def get_languages():
+    try:
+        with open('languages.yaml') as languages:
+            langs = yaml.load(languages, Loader=yaml.FullLoader)['langs']
+        return langs
+    except FileNotFoundError:
+        print('language file does not exist')
+
+
+LANGUAGES = get_languages()
+def check_translation_languages(translations):
+    for lang in translations[0]['languages'].keys():
+        if lang not in LANGUAGES:
+            return False
+    return True
 
 class AllergyService(Service):
 
@@ -20,20 +45,21 @@ class AllergyService(Service):
         data = serializer.message_to_data(message=request)
         response = dict()
         response['error_code'] = 0
-        if not data['name'] or not data['translations']:
+        if not data['name']:
             response['error_code'] = 1
-            return serializer.data_to_message(data)
+            return serializer.data_to_message(response)
         try:
-            new_obj = Allergy(name=data['name'], translations=data['translations'])
+            new_obj = Allergy(name=data['name'])
+            if 'translations' in data:
+                if not check_translation_languages(data['translations']):
+                    response['error_code'] = 1
+                    return serializer.data_to_message(response)
+                new_obj.translations = data['translations']
             new_obj.save()
             response['allergy'] = {'id': new_obj.pk,
                                    'name': new_obj.name,
-                                   'translations': new_obj.translations}
+                                   'translations': new_obj.translations if new_obj.translations else None}
         except IntegrityError:
-            existed_obj = Allergy.objects.get(name=data['name'])
-            response['allergy'] = {'id': existed_obj.pk,
-                                   'name': existed_obj.name,
-                                   'translations': existed_obj.translations}
             response['error_code'] = 2
 
         return serializer.data_to_message(response)
@@ -59,7 +85,7 @@ class AllergyService(Service):
         serializer = AllergyRetrieveSerializer()
         data = serializer.message_to_data(request)
         response = {'error_code': 0}
-        if data['id'] != 0:
+        if data['id'] >= 0:
             try:
                 allergy = Allergy.objects.get(pk=data['id'])
                 translation = find_translation(data['language'],
@@ -77,7 +103,7 @@ class AllergyService(Service):
         serializer = AllergyUpdateSerializer()
         data = serializer.message_to_data(request)
         response = {'error_code': 0}
-        if data and data['allergy']['id'] != 0:
+        if data and data['allergy']['id'] > 0:
             try:
                 allergy = Allergy.objects.get(pk=data['allergy']['id'])
                 allergy.name = data['allergy']['name']
@@ -96,7 +122,7 @@ class AllergyService(Service):
         serializer = AllergyDestroySerializer()
         data = serializer.message_to_data(request)
         response = {'error_code': 0}
-        if data['id'] == 0:
+        if data['id'] <= 0:
             response['error_code'] = 1
         else:
             try:
@@ -111,17 +137,23 @@ class UserAllergyService(Service):
         serializer = UserAllergyListSerializer()
         data = serializer.message_to_data(request)
         response = {'error_code': 0}
+        if not is_uuid(data['user_id']):
+            response['error_code'] = 1
+            return serializer.data_to_message(response)
         if not data['user_id']:
             return serializer.data_to_message(response)
         allergies = UserAllergy.objects.filter(user_id=data['user_id'])
         response['user_id'] = data['user_id']
-        response['allergies_id'] = [i.pk for i in allergies]
+        response['allergies_id'] = [i.allergy_id for i in allergies]
         return serializer.data_to_message(response)
 
     def Create(self, request, context):
         serializer = UserAllergyCreateSerializer()
         data = serializer.message_to_data(request)
         response = {'error_code': 0, 'user_id': data['user_id'], 'allergy_id': data['allergy_id']}
+        if not is_uuid(data['user_id']):
+            response['error_code'] = 1
+            return serializer.data_to_message(response)
         if not (data['user_id'] and data['allergy_id']):
             response['error_code'] = 1
             return serializer.data_to_message(response)
@@ -139,6 +171,9 @@ class UserAllergyService(Service):
         serializer = UserAllergyDestroySerializer()
         data = serializer.message_to_data(request)
         response = {'error_code': 0}
+        if not is_uuid(data['user_id']):
+            response['error_code'] = 1
+            return serializer.data_to_message(response)
         if not (data['user_id'] and data['allergy_id']):
             response['error_code'] = 1
             return serializer.data_to_message(response)
@@ -156,13 +191,18 @@ class IngredientService(Service):
         response = {'error_code': 0}
         if not data['name'] or not data['translations']:
             response['error_code'] = 1
-            return serializer.data_to_message(data)
+            return serializer.data_to_message(response)
         try:
-            new_obj = Ingredients(name=data['name'], translations=data['translations'])
+            new_obj = Ingredients(name=data['name'])
+            if 'translations' in data:
+                if not check_translation_languages(data['translations']):
+                    response['error_code'] = 1
+                    return serializer.data_to_message(response)
+                new_obj.translations = data['translations']
             new_obj.save()
             response['ingredient'] = {'id': new_obj.pk,
-                                      'name': new_obj.name,
-                                      'translations': new_obj.translations}
+                                   'name': new_obj.name,
+                                   'translations': new_obj.translations if new_obj.translations else None}
         except IntegrityError:
             existed_obj = Ingredients.objects.get(name=data['name'])
             response['ingredient'] = {'id': existed_obj.pk,
@@ -194,7 +234,7 @@ class IngredientService(Service):
         serializer = IngredientRetrieveSerializer()
         data = serializer.message_to_data(request)
         response = {'error_code': 0}
-        if data['ingredient_id'] != 0:
+        if data['ingredient_id'] > 0:
             try:
                 ingredient = Ingredients.objects.get(pk=data['ingredient_id'])
                 translation = find_translation(data['language'],
@@ -212,7 +252,7 @@ class IngredientService(Service):
         serializer = IngredientUpdateSerializer()
         data = serializer.message_to_data(request)
         response = {'error_code': 0}
-        if data and data['ingredient']['id'] != 0:
+        if data and data['ingredient']['id'] > 0:
             try:
                 ingredient = Ingredients.objects.get(pk=data['ingredient']['id'])
                 ingredient.name = data['ingredient']['name']
@@ -231,7 +271,7 @@ class IngredientService(Service):
         serializer = IngredientDestroySerializer()
         data = serializer.message_to_data(request)
         response = {'error_code': 0}
-        if not data['ingredient_id']:
+        if not data['ingredient_id'] or data['ingredient_id'] <= 0:
             response['error_code'] = 1
         else:
             try:
