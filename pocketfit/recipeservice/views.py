@@ -119,7 +119,7 @@ class IngredientsDeleteAll(APIView):
             try:
                 ingridient_id = uuid.UUID(id_str)
             except ValueError:
-                return Response({"error": f"{id_str} is not a valid UUIDv4"}, status=status.HTTP_400_BAD_REQUEST)
+                return CustomAPIException({"error": f"{id_str} is not a valid UUIDv4"}, code=status.HTTP_400_BAD_REQUEST)
 
             try:
                 ingridient = Ingredients.objects.get(id=ingridient_id)
