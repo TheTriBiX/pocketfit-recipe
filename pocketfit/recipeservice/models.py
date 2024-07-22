@@ -1,10 +1,11 @@
 from django.db import models
+import uuid
 
 class Ingredients(models.Model):
 
-    id = models.AutoField(primary_key=True, auto_created=True)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(null=False, max_length=100, unique=True)
-    translations = models.JSONField(null=True)
+    translations = models.JSONField(null=True, blank=True)
     Squirrels = models.IntegerField(null=True, blank=True)
     Fats = models.IntegerField(null=True, blank=True)
     Carbohydrates = models.IntegerField(null=True, blank=True) 

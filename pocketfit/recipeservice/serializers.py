@@ -1,5 +1,6 @@
 from django_grpc_framework import proto_serializers
-from recipeservice.models import Allergy, UserAllergy
+from recipeservice.models import Allergy, UserAllergy, Ingredients
+from rest_framework import serializers
 from recipe_proto import allergy_pb2
 import json
 from google.protobuf.json_format import MessageToDict, ParseDict, MessageToJson, Parse
@@ -138,3 +139,8 @@ class IngredientDestroyAllergySerializer:
 
     def data_to_message(self, data):
         return Parse(json.dumps(data), allergy_pb2.IngredientDestroyAllergyResponse())
+    
+class IngredientsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Ingredients
+        fields = '__all__'
