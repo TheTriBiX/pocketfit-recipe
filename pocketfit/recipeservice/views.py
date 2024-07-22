@@ -4,6 +4,7 @@ from rest_framework import status
 from .models import Ingredients
 from .serializers import IngredientsSerializer
 import uuid
+from .exception_handler import CustomAPIException 
 
 class IngredientsCreateView(APIView):
     def post(self, request, format=None):
@@ -13,24 +14,24 @@ class IngredientsCreateView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             if 'name' in serializer.errors and 'unique' in str(serializer.errors['name'][0]):
-                return Response({'error': 'Ingredient with this name already exists.'}, status=status.HTTP_409_CONFLICT)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                raise CustomAPIException({'error': 'Ingredient with this name already exists.'}, code=status.HTTP_409_CONFLICT)
+            raise CustomAPIException(serializer.errors, code=status.HTTP_400_BAD_REQUEST)
 
 class IngredientsDetailView(APIView):
     def get(self, request, id, format=None):
         try:
             uuid.UUID(id, version=4)
         except ValueError:
-            return Response({'error': 'Invalid UUID format.'}, status=status.HTTP_400_BAD_REQUEST)
+            raise CustomAPIException({'error': 'Invalid UUID format.'}, code=status.HTTP_400_BAD_REQUEST)
 
         try:
             ingredient = Ingredients.objects.get(id=id)
         except Ingredients.DoesNotExist:
-            return Response({'error': 'Ingredient not found.'}, status=status.HTTP_404_NOT_FOUND)
+            raise CustomAPIException({'error': f'Ingredient with UUID {id} not found.'}, code=status.HTTP_404_NOT_FOUND)
 
         serializer = IngredientsSerializer(ingredient)
         return Response(serializer.data)
-    
+
 class IngredientsListView(APIView):
     def get(self, request):
         count = int(request.query_params.get('count', 10))
@@ -41,7 +42,7 @@ class IngredientsListView(APIView):
                 offset_ingredient = Ingredients.objects.get(id=offset_id)
                 ingredients = Ingredients.objects.filter(id__gt=offset_ingredient.id)[:count]
             except Ingredients.DoesNotExist:
-                return Response({"error": "Invalid offset_id"}, status=status.HTTP_400_BAD_REQUEST)
+                raise CustomAPIException({"error": "Invalid offset_id"}, code=status.HTTP_400_BAD_REQUEST)
         else:
             ingredients = Ingredients.objects.all()[:count]
 
@@ -52,7 +53,7 @@ class IngredientsSearchView(APIView):
     def get(self, request):
         substring = request.query_params.get('substring', '')
         if not substring:
-            return Response({"error": "Substring is required"}, status=status.HTTP_400_BAD_REQUEST)
+            raise CustomAPIException({"error": "Substring is required"}, code=status.HTTP_400_BAD_REQUEST)
 
         ingredients = Ingredients.objects.filter(name__icontains=substring)
         serializer = IngredientsSerializer(ingredients, many=True)
@@ -63,12 +64,12 @@ class IngredientsUpdateView(APIView):
         try:
             uuid.UUID(id, version=4)
         except ValueError:
-            return Response({"error": "Invalid UUID format"}, status=status.HTTP_400_BAD_REQUEST)
+            raise CustomAPIException({"error": "Invalid UUID format"}, code=status.HTTP_400_BAD_REQUEST)
 
         try:
             ingredient = Ingredients.objects.get(id=id)
         except Ingredients.DoesNotExist:
-            return Response({"error": "Ingredient not found"}, status=status.HTTP_404_NOT_FOUND)
+            raise CustomAPIException({'error': f'Ingredient with UUID {id} not found.'}, code=status.HTTP_404_NOT_FOUND)
 
         serializer = IngredientsSerializer(ingredient, data=request.data, partial=True)
         if serializer.is_valid():
@@ -76,20 +77,20 @@ class IngredientsUpdateView(APIView):
             return Response(serializer.data)
         else:
             if 'name' in serializer.errors and 'unique' in str(serializer.errors['name'][0]):
-                return Response({"error": "Name already exists"}, status=status.HTTP_409_CONFLICT)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                raise CustomAPIException({"error": "Name already exists"}, code=status.HTTP_409_CONFLICT)
+            raise CustomAPIException(serializer.errors, code=status.HTTP_400_BAD_REQUEST)
 
 class IngredientsDeleteView(APIView):
     def delete(self, request, id):
         try:
             uuid.UUID(id, version=4)
         except ValueError:
-            return Response({"error": "Invalid UUID format"}, status=status.HTTP_400_BAD_REQUEST)
+            raise CustomAPIException({"error": "Invalid UUID format"}, code=status.HTTP_400_BAD_REQUEST)
 
         try:
             ingredient = Ingredients.objects.get(id=id)
         except Ingredients.DoesNotExist:
-            return Response({"error": "Ingredient not found"}, status=status.HTTP_404_NOT_FOUND)
+            raise CustomAPIException({'error': f'Ingredient with UUID {id} not found.'}, code=status.HTTP_404_NOT_FOUND)
 
         ingredient.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -103,7 +104,7 @@ class IngredientsBulkDeleteView(APIView):
             try:
                 uuid.UUID(id, version=4)
             except ValueError:
-                return Response({"error": "Invalid UUID format"}, status=status.HTTP_400_BAD_REQUEST)
+                raise CustomAPIException({"error": "Invalid UUID format"}, code=status.HTTP_400_BAD_REQUEST)
 
             try:
                 ingredient = Ingredients.objects.get(id=id)

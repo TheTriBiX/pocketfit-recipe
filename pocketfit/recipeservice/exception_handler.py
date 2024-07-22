@@ -1,4 +1,5 @@
 from rest_framework.views import exception_handler
+from rest_framework.exceptions import APIException
 
 def custom_exception_handler(exc, context):
     # Вызовите стандартный обработчик исключений DRF, чтобы получить стандартный ответ
@@ -15,3 +16,14 @@ def custom_exception_handler(exc, context):
             response.data = custom_response
 
     return response
+
+class CustomAPIException(APIException):
+    status_code = 400
+    default_detail = 'A custom error occurred.'
+    default_code = 'custom_error'
+
+    def __init__(self, detail=None, code=None):
+        if detail is not None:
+            self.detail = detail
+        if code is not None:
+            self.status_code = code
