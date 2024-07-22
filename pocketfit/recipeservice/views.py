@@ -20,18 +20,19 @@ class IngredientsCreateView(APIView):
 class IngredientsDetailView(APIView):
     def get(self, request, id, format=None):
         try:
-            uuid.UUID(id, version=4)
+            uuid_obj = uuid.UUID(str(id))
+            if uuid_obj.version != 4:
+                raise CustomAPIException({'error': 'Invalid UUID version.'}, code=status.HTTP_400_BAD_REQUEST)
         except ValueError:
             raise CustomAPIException({'error': 'Invalid UUID format.'}, code=status.HTTP_400_BAD_REQUEST)
 
         try:
-            ingredient = Ingredients.objects.get(id=id)
+            ingredient = Ingredients.objects.get(id=uuid_obj)
         except Ingredients.DoesNotExist:
             raise CustomAPIException({'error': f'Ingredient with UUID {id} not found.'}, code=status.HTTP_404_NOT_FOUND)
 
         serializer = IngredientsSerializer(ingredient)
         return Response(serializer.data)
-
 class IngredientsListView(APIView):
     def get(self, request):
         count = int(request.query_params.get('count', 10))
@@ -51,10 +52,19 @@ class IngredientsListView(APIView):
 
 class IngredientsSearchView(APIView):
     def get(self, request):
-        substring = request.query_params.get('substring', '')
+        substring = request.query_params.get('substring', None)
+        
         if not substring:
-            raise CustomAPIException({"error": "Substring is required"}, code=status.HTTP_400_BAD_REQUEST)
-
+            return CustomAPIException({'error': 'Substring parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Проверка, что substring является строкой
+        if not isinstance(substring, str):
+            return CustomAPIException({'error': 'Substring must be a string'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Переводим substring в нижний регистр
+        substring = substring.lower()
+        
+        # Поиск ингредиентов по подстроке
         ingredients = Ingredients.objects.filter(name__icontains=substring)
         serializer = IngredientsSerializer(ingredients, many=True)
         return Response(serializer.data)
@@ -62,12 +72,14 @@ class IngredientsSearchView(APIView):
 class IngredientsUpdateView(APIView):
     def patch(self, request, id):
         try:
-            uuid.UUID(id, version=4)
+            uuid_obj = uuid.UUID(str(id))
+            if uuid_obj.version != 4:
+                raise CustomAPIException({"error": "Invalid UUID version"}, code=status.HTTP_400_BAD_REQUEST)
         except ValueError:
             raise CustomAPIException({"error": "Invalid UUID format"}, code=status.HTTP_400_BAD_REQUEST)
 
         try:
-            ingredient = Ingredients.objects.get(id=id)
+            ingredient = Ingredients.objects.get(id=uuid_obj)
         except Ingredients.DoesNotExist:
             raise CustomAPIException({'error': f'Ingredient with UUID {id} not found.'}, code=status.HTTP_404_NOT_FOUND)
 
@@ -83,35 +95,41 @@ class IngredientsUpdateView(APIView):
 class IngredientsDeleteView(APIView):
     def delete(self, request, id):
         try:
-            uuid.UUID(id, version=4)
+            uuid_obj = uuid.UUID(str(id))
+            if uuid_obj.version != 4:
+                raise CustomAPIException({"error": "Invalid UUID version"}, code=status.HTTP_400_BAD_REQUEST)
         except ValueError:
             raise CustomAPIException({"error": "Invalid UUID format"}, code=status.HTTP_400_BAD_REQUEST)
 
         try:
-            ingredient = Ingredients.objects.get(id=id)
+            ingredient = Ingredients.objects.get(id=uuid_obj)
         except Ingredients.DoesNotExist:
             raise CustomAPIException({'error': f'Ingredient with UUID {id} not found.'}, code=status.HTTP_404_NOT_FOUND)
 
         ingredient.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-class IngredientsBulkDeleteView(APIView):
-    def delete(self, request):
+class IngredientsDeleteAll(APIView):
+    def delete(self, request, format=None):
         ids = request.query_params.getlist('id')
-        deleted_ingredients = []
+        deleted_count = 0
+        deleted_objects = []
 
-        for id in ids:
+        for id_str in ids:
             try:
-                uuid.UUID(id, version=4)
+                ingridient_id = uuid.UUID(id_str)
             except ValueError:
-                raise CustomAPIException({"error": "Invalid UUID format"}, code=status.HTTP_400_BAD_REQUEST)
+                return Response({"error": f"{id_str} is not a valid UUIDv4"}, status=status.HTTP_400_BAD_REQUEST)
 
             try:
-                ingredient = Ingredients.objects.get(id=id)
-                deleted_ingredients.append(ingredient)
-                ingredient.delete()
+                ingridient = Ingredients.objects.get(id=ingridient_id)
+                ingridient.delete()
+                deleted_count += 1
+                deleted_objects.append(ingridient)
             except Ingredients.DoesNotExist:
                 continue
 
-        serializer = IngredientsSerializer(deleted_ingredients, many=True)
-        return Response({"count": len(deleted_ingredients), "deleted_ingredients": serializer.data})
+        return Response({
+            "count": deleted_count,
+            "deleted_objects": [ingridient.id for ingridient in deleted_objects]
+        }, status=status.HTTP_200_OK)

@@ -5,7 +5,7 @@ class Ingredients(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(null=False, max_length=100, unique=True)
-    translations = models.JSONField(null=True, blank=True)
+    translations = models.JSONField(null=False)
     Squirrels = models.IntegerField(null=True, blank=True)
     Fats = models.IntegerField(null=True, blank=True)
     Carbohydrates = models.IntegerField(null=True, blank=True) 
@@ -17,6 +17,10 @@ class Ingredients(models.Model):
         db_table = 'Ingredients'
     def __str__(self):
         return self.name
+    def save(self, *args, **kwargs):
+        if self.name:
+            self.name = self.name.lower()
+        super(Ingredients, self).save(*args, **kwargs)
 
 
 
