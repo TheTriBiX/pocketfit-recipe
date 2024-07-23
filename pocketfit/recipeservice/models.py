@@ -5,7 +5,7 @@ class Ingredients(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(null=False, max_length=100, unique=True)
-    translations = models.JSONField(null=False)
+    translations = models.JSONField(null=True)
     Squirrels = models.IntegerField(null=True, blank=True)
     Fats = models.IntegerField(null=True, blank=True)
     Carbohydrates = models.IntegerField(null=True, blank=True) 

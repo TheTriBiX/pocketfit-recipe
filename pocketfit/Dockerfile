@@ -1,11 +1,33 @@
-# syntax=docker/dockerfile:1.4
-FROM python:3.12-alpine AS builder
-EXPOSE 50051
-WORKDIR /app
-COPY requirements.txt /app
-RUN pip3 install -r requirements.txt --no-cache-dir
-RUN pip3 install psycopg2-binary
-COPY . /app
-ENTRYPOINT ["python3"]
-RUN python3 manage.py migrate
-CMD ["manage.py", "grpcrunserver", "0.0.0.0:50051", "--dev"]
+# Используем официальный образ Python в качестве базового образа
+FROM python:3.11-slim
+
+# Устанавливаем переменные окружения
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+# Устанавливаем зависимости для psycopg2
+RUN apt-get update && apt-get install -y \
+    libpq-dev \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Создаем директорию для приложения
+RUN mkdir /code
+WORKDIR /code
+
+# Устанавливаем зависимости Python
+COPY requirements.txt /code/
+RUN pip install --upgrade pip
+RUN pip install -r requirements.txt
+
+# Копируем проект в контейнер
+COPY . /code/
+
+# Выполняем миграции и собираем статические файлы
+RUN python manage.py makemigrations recipeservice
+RUN python manage.py migrate
+# Открываем порт для веб-сервера
+EXPOSE 8000
+
+# Запускаем Django сервер
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
