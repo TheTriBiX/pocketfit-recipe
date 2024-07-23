@@ -1,12 +1,7 @@
-Перед стартом
+Перед стартом перейти в директорию pocketfit-recipe/pocketfit
 
-/manage.py makemigrations
+docker-compose up --build
 
-/manage.py migrate
-
-sudo docker build . -t pocket-fit-recipes
-
-sudo docker compose up -d
 
 чтобы сменить sqlite на postgres:
 
