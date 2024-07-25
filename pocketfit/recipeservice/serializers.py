@@ -144,3 +144,26 @@ class IngredientsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ingredients
         fields = '__all__'
+
+class AllergySerializerDRF(serializers.ModelSerializer):
+    foods = serializers.PrimaryKeyRelatedField(queryset=Ingredients.objects.all(), many=True)
+
+    class Meta:
+        model = Allergy
+        fields = ['id', 'name', 'translations', 'comment', 'foods']
+
+    def create(self, validated_data):
+        foods_data = validated_data.pop('foods')
+        allergy = Allergy.objects.create(**validated_data)
+        allergy.foods.set(foods_data)
+        return allergy
+    def update(self, instance, validated_data):
+        foods_data = validated_data.pop('foods', None)
+        instance = super().update(instance, validated_data)
+        if foods_data is not None:
+            instance.foods.set(foods_data)
+        return instance
+class UserAllergySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserAllergy
+        fields = ['user_id', 'allergy_id']

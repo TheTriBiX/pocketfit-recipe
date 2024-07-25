@@ -20,11 +20,9 @@ class Ingredients(models.Model):
     def save(self, *args, **kwargs):
         if self.name:
             self.name = self.name.lower()
+        self.translations = {"ru" : self.name} # Здесь необходимо вместо ru вытягивать язык пользователя по умолчанию???   
         super(Ingredients, self).save(*args, **kwargs)
 
-
-
-# Create your models here.
 class Allergy(models.Model):
     class Meta:
         db_table = 'allergy'
@@ -33,9 +31,14 @@ class Allergy(models.Model):
     name = models.CharField(max_length=255)
     translations = models.JSONField(null=True, blank=True)
     comment = models.TextField(null=True, blank=True)
-    foods = models.ForeignKey(Ingredients, on_delete=models.CASCADE, null=True, blank=True)
+    foods = models.ManyToManyField(Ingredients, null=True, blank=True)
     def __str__(self):
         return self.name
+    def save(self, *args, **kwargs):
+        if self.name:
+            self.name = self.name.lower()
+        self.translations = {"ru" : self.name} # Здесь необходимо вместо ru вытягивать язык пользователя по умолчанию???   
+        super(Ingredients, self).save(*args, **kwargs)
 
 
 class UserAllergy(models.Model):
