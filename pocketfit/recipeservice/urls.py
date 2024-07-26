@@ -17,4 +17,5 @@ urlpatterns = [
     path('allergy/update/<int:id>/', views.AllergyUpdateView.as_view(), name='allergy-update'),
     path('allergy/delete/all/', views.AllergyDeleteAllView.as_view(), name='allergy-delete-all'),
     path('allergy/delete/<int:id>/', views.AllergyDeleteView.as_view(), name='allergy-delete'),
+    path('user/allergy/', views.UserAllergyView.as_view(), name='user-allergy'),
     ]

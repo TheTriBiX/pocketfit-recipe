@@ -163,7 +163,7 @@ class AllergySerializerDRF(serializers.ModelSerializer):
         if foods_data is not None:
             instance.foods.set(foods_data)
         return instance
-class UserAllergySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UserAllergy
-        fields = ['user_id', 'allergy_id']
+
+class UserAllergySerializer(serializers.Serializer):
+    user_id = serializers.CharField(max_length=100)
+    allergy_ids = serializers.ListField(child=serializers.IntegerField())

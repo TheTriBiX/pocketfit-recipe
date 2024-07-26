@@ -37,8 +37,8 @@ class Allergy(models.Model):
     def save(self, *args, **kwargs):
         if self.name:
             self.name = self.name.lower()
-        self.translations = {"ru" : self.name} # Здесь необходимо вместо ru вытягивать язык пользователя по умолчанию???   
-        super(Ingredients, self).save(*args, **kwargs)
+        self.translations = {"ru": self.name}  # Здесь необходимо вместо ru вытягивать язык пользователя по умолчанию???
+        super(Allergy, self).save(*args, **kwargs)
 
 
 class UserAllergy(models.Model):

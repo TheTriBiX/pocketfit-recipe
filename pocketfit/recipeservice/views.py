@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Ingredients, Allergy, UserAllergy
-from .serializers import IngredientsSerializer, AllergySerializerDRF
+from .serializers import IngredientsSerializer, AllergySerializerDRF, UserAllergySerializer
 import uuid
 from django.shortcuts import get_object_or_404
 from .exception_handler import CustomAPIException, CustomAPIExceptionAllergy
@@ -254,24 +254,18 @@ class AllergyDeleteView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
 class UserAllergyView(APIView):
-    def post(self, request, format=None):
-        user_id = request.data.get('user_id')
-        allergy_ids = request.data.get('allergy_ids', [])
+    def post(self, request):
+        serializer = UserAllergySerializer(data=request.data)
+        if serializer.is_valid():
+            user_id = serializer.validated_data['user_id']
+            allergy_ids = serializer.validated_data['allergy_ids']
 
-        if not user_id:
-            return CustomAPIExceptionAllergy({"detail": "User ID is required."}, status=status.HTTP_400_BAD_REQUEST)
+            # Удаляем все предыдущие записи для данного пользователя
+            UserAllergy.objects.filter(user_id=user_id).delete()
 
-        # Удаляем все текущие записи аллергий для данного пользователя
-        UserAllergy.objects.filter(user_id=user_id).delete()
+            # Создаем новые записи
+            for allergy_id in allergy_ids:
+                UserAllergy.objects.create(user_id=user_id, allergy_id=allergy_id)
 
-        # Создаем новые записи аллергий для данного пользователя
-        for allergy_id in allergy_ids:
-            try:
-                allergy = Allergy.objects.get(id=allergy_id)
-            except Allergy.DoesNotExist:
-                return CustomAPIExceptionAllergy({"detail": f"Allergy with ID {allergy_id} does not exist."}, status=status.HTTP_404_NOT_FOUND)
-
-            UserAllergy.objects.create(user_id=user_id, allergy_id=allergy_id)
-
-        # Возвращаем успешный ответ
-        return Response({"detail": "Allergies set successfully."}, status=status.HTTP_200_OK)
+            return Response({'status': 'success'}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
