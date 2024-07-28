@@ -1,5 +1,5 @@
 from django_grpc_framework import proto_serializers
-from recipeservice.models import Allergy, UserAllergy, Ingredients
+from recipeservice.models import Allergy, UserAllergy, Ingredients, IngredientsCategory
 from rest_framework import serializers
 from recipe_proto import allergy_pb2
 import json
@@ -167,3 +167,15 @@ class AllergySerializerDRF(serializers.ModelSerializer):
 class UserAllergySerializer(serializers.Serializer):
     user_id = serializers.CharField(max_length=100)
     allergy_ids = serializers.ListField(child=serializers.IntegerField())
+
+class IngredientsCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = IngredientsCategory
+        fields = '__all__'
+
+    def create(self, validated_data):
+        ingredients_data = validated_data.pop('ingredients', [])
+        category = IngredientsCategory.objects.create(**validated_data)
+        for ingredient in ingredients_data:
+            category.ingredients.add(ingredient)
+        return category

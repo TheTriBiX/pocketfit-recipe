@@ -4,8 +4,8 @@ from django.db import transaction, IntegrityError
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Ingredients, Allergy, UserAllergy
-from .serializers import IngredientsSerializer, AllergySerializerDRF, UserAllergySerializer
+from .models import Ingredients, Allergy, UserAllergy, IngredientsCategory
+from .serializers import IngredientsSerializer, AllergySerializerDRF, UserAllergySerializer, IngredientsCategorySerializer
 import uuid
 from django.shortcuts import get_object_or_404
 from .exception_handler import CustomAPIException, CustomAPIExceptionAllergy
@@ -269,3 +269,100 @@ class UserAllergyView(APIView):
 
             return Response({'status': 'success'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class IngredientsCategoryCreateView(APIView):
+    def post(self, request, format=None):
+        serializer = IngredientsCategorySerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            if 'name' in serializer.errors and 'unique' in str(serializer.errors['name'][0]):
+                raise CustomAPIException({'error': 'Category with this name already exists.'}, code=status.HTTP_409_CONFLICT)
+            raise CustomAPIException(serializer.errors, code=status.HTTP_400_BAD_REQUEST)
+
+class IngredientsCategoryDetailView(APIView):
+    def get(self, request, id, format=None):
+        try:
+            category = IngredientsCategory.objects.get(id=id)
+        except IngredientsCategory.DoesNotExist:
+            raise CustomAPIException({'error': f'Category with ID {id} not found.'}, code=status.HTTP_404_NOT_FOUND)
+
+        serializer = IngredientsCategorySerializer(category)
+        return Response(serializer.data)
+
+class IngredientsCategoryListView(APIView):
+    def get(self, request):
+        count = int(request.query_params.get('count', 10))
+        offset_id = request.query_params.get('offset_id', None)
+
+        if offset_id:
+            try:
+                offset_category = IngredientsCategory.objects.get(id=offset_id)
+                categories = IngredientsCategory.objects.filter(id__gt=offset_category.id)[:count]
+            except IngredientsCategory.DoesNotExist:
+                raise CustomAPIException({"error": "Invalid offset_id"}, code=status.HTTP_400_BAD_REQUEST)
+        else:
+            categories = IngredientsCategory.objects.all()[:count]
+
+        serializer = IngredientsCategorySerializer(categories, many=True)
+        return Response(serializer.data)
+    
+class IngredientsCategorySearchView(APIView):
+    def get(self, request):
+        substring = request.query_params.get('substring', None)
+        
+        if not substring:
+            return CustomAPIException({'error': 'Substring parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        substring = substring.lower()
+        
+        categories = IngredientsCategory.objects.filter(name__icontains=substring)
+        serializer = IngredientsCategorySerializer(categories, many=True)
+        return Response(serializer.data)
+
+class IngredientsCategoryUpdateView(APIView):
+    def patch(self, request, id):
+        try:
+            category = IngredientsCategory.objects.get(id=id)
+        except IngredientsCategory.DoesNotExist:
+            raise CustomAPIException({'error': f'Category with ID {id} not found.'}, code=status.HTTP_404_NOT_FOUND)
+
+        serializer = IngredientsCategorySerializer(category, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            if 'name' in serializer.errors and 'unique' in str(serializer.errors['name'][0]):
+                raise CustomAPIException({"error": "Name already exists"}, code=status.HTTP_409_CONFLICT)
+            raise CustomAPIException(serializer.errors, code=status.HTTP_400_BAD_REQUEST)
+
+class IngredientsCategoryDeleteView(APIView):
+    def delete(self, request, id):
+        try:
+            category = IngredientsCategory.objects.get(id=id)
+        except IngredientsCategory.DoesNotExist:
+            raise CustomAPIException({'error': f'Category with ID {id} not found.'}, code=status.HTTP_404_NOT_FOUND)
+
+        category.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+class IngredientsCategoryDeleteAll(APIView):
+    def delete(self, request, format=None):
+        ids = request.query_params.getlist('id')
+        deleted_count = 0
+        deleted_objects = []
+
+        for id_str in ids:
+            try:
+                category = IngredientsCategory.objects.get(id=id_str)
+                category.delete()
+                deleted_count += 1
+                deleted_objects.append(category)
+            except IngredientsCategory.DoesNotExist:
+                continue
+
+        return Response({
+            "count": deleted_count,
+            "deleted_objects": [category.id for category in deleted_objects]
+        }, status=status.HTTP_200_OK)

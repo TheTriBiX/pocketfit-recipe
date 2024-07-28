@@ -49,6 +49,23 @@ class UserAllergy(models.Model):
     user_id = models.CharField(max_length=100)
     allergy_id = models.IntegerField()
 
+class IngredientsCategory(models.Model):
+    name = models.CharField(max_length=255)
+    ingredients = models.ManyToManyField(Ingredients, related_name='categories')
+    translations = models.JSONField(null=True, blank=True)
+
+    class Meta:
+        db_table = 'ingredients_category'
+
+    def __str__(self):
+        return self.name
+
+    def save(self, *args, **kwargs):
+        if self.name:
+            self.name = self.name.lower()
+        self.translations = {"ru": self.name}
+        super().save(*args, **kwargs)
+
 
 class IngredientsAllergy(models.Model):
     class Meta:
