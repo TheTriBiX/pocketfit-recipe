@@ -4,7 +4,7 @@ from rest_framework import serializers
 from recipe_proto import allergy_pb2
 import json
 from google.protobuf.json_format import MessageToDict, ParseDict, MessageToJson, Parse
-
+import uuid
 
 class AllergyCreateSerializer:
     def message_to_data(self, message):
@@ -146,36 +146,85 @@ class IngredientsSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class AllergySerializerDRF(serializers.ModelSerializer):
-    foods = serializers.PrimaryKeyRelatedField(queryset=Ingredients.objects.all(), many=True)
+    foods = serializers.PrimaryKeyRelatedField(many=True, queryset=Ingredients.objects.all(), required=False)
 
     class Meta:
         model = Allergy
         fields = ['id', 'name', 'translations', 'comment', 'foods']
+        read_only_fields = ['id']
+
+    def validate_id(self, value):
+        if value and not isinstance(value, uuid.UUID):
+            raise serializers.ValidationError("Invalid UUID format.")
+        return value
+
+    def validate_name(self, value):
+        if Allergy.objects.filter(name=value.lower()).exists():
+            raise serializers.ValidationError("Allergy with this name already exists.")
+        return value.lower()
 
     def create(self, validated_data):
-        foods_data = validated_data.pop('foods')
+        foods_data = validated_data.pop('foods', [])
         allergy = Allergy.objects.create(**validated_data)
         allergy.foods.set(foods_data)
         return allergy
+
     def update(self, instance, validated_data):
-        foods_data = validated_data.pop('foods', None)
-        instance = super().update(instance, validated_data)
-        if foods_data is not None:
-            instance.foods.set(foods_data)
+        if 'name' in validated_data:
+            instance.name = validated_data['name']
+        if 'translations' in validated_data:
+            instance.translations = validated_data['translations']
+        if 'comment' in validated_data:
+            instance.comment = validated_data['comment']
+        if 'foods' in validated_data:
+            instance.foods.set(validated_data['foods'])
+        instance.save()
         return instance
 
-class UserAllergySerializer(serializers.Serializer):
-    user_id = serializers.CharField(max_length=100)
-    allergy_ids = serializers.ListField(child=serializers.IntegerField())
+class UserAllergySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserAllergy
+        fields = ['user_id', 'allergy_id']
 
+    def validate_allergy_id(self, value):
+        if not Allergy.objects.filter(id=value).exists():
+            raise serializers.ValidationError(f"Allergy with id {value} does not exist.")
+        return value
 class IngredientsCategorySerializer(serializers.ModelSerializer):
+    ingredients = serializers.PrimaryKeyRelatedField(many=True, queryset=Ingredients.objects.all())
+
     class Meta:
         model = IngredientsCategory
-        fields = '__all__'
+        fields = ['id', 'name', 'ingredients', 'translations']
+        read_only_fields = ['id']
+
+    def validate_name(self, value):
+        if IngredientsCategory.objects.filter(name=value.lower()).exists():
+            raise serializers.ValidationError("Category with this name already exists.")
+        return value.lower()
+
+    def validate_id(self, value):
+        if value and not isinstance(value, uuid.UUID):
+            raise serializers.ValidationError("Invalid UUID format.")
+        return value
+
+    def validate_translations(self, value):
+        if value and not isinstance(value, dict):
+            raise serializers.ValidationError("Translations must be a JSON object.")
+        return value
 
     def create(self, validated_data):
-        ingredients_data = validated_data.pop('ingredients', [])
+        ingredients = validated_data.pop('ingredients', [])
         category = IngredientsCategory.objects.create(**validated_data)
-        for ingredient in ingredients_data:
-            category.ingredients.add(ingredient)
+        category.ingredients.set(ingredients)
         return category
+
+    def update(self, instance, validated_data):
+        if 'name' in validated_data:
+            instance.name = validated_data['name']
+        if 'ingredients' in validated_data:
+            instance.ingredients.set(validated_data['ingredients'])
+        if 'translations' in validated_data:
+            instance.translations = validated_data['translations']
+        instance.save()
+        return instance

@@ -60,11 +60,11 @@ class IngredientsSearchView(APIView):
         substring = request.query_params.get('substring', None)
         
         if not substring:
-            return CustomAPIException({'error': 'Substring parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
+            return CustomAPIException({'error': 'Substring parameter is required'}, code=status.HTTP_400_BAD_REQUEST)
         
         # Проверка, что substring является строкой
         if not isinstance(substring, str):
-            return CustomAPIException({'error': 'Substring must be a string'}, status=status.HTTP_400_BAD_REQUEST)
+            return CustomAPIException({'error': 'Substring must be a string'}, code=status.HTTP_400_BAD_REQUEST)
         
         # Переводим substring в нижний регистр
         substring = substring.lower()
@@ -322,6 +322,14 @@ class IngredientsCategorySearchView(APIView):
         return Response(serializer.data)
 
 class IngredientsCategoryUpdateView(APIView):
+    def get(self, request, id):
+        try:
+            category = IngredientsCategory.objects.get(id=id)
+        except IngredientsCategory.DoesNotExist:
+            raise CustomAPIException({'error': f'Category with ID {id} not found.'}, code=status.HTTP_404_NOT_FOUND)
+
+        serializer = IngredientsCategorySerializer(category)
+        return Response(serializer.data)
     def patch(self, request, id):
         try:
             category = IngredientsCategory.objects.get(id=id)
@@ -336,7 +344,7 @@ class IngredientsCategoryUpdateView(APIView):
             if 'name' in serializer.errors and 'unique' in str(serializer.errors['name'][0]):
                 raise CustomAPIException({"error": "Name already exists"}, code=status.HTTP_409_CONFLICT)
             raise CustomAPIException(serializer.errors, code=status.HTTP_400_BAD_REQUEST)
-
+        
 class IngredientsCategoryDeleteView(APIView):
     def delete(self, request, id):
         try:
@@ -346,8 +354,33 @@ class IngredientsCategoryDeleteView(APIView):
 
         category.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    def get(self, request, id):
+        try:
+            category = IngredientsCategory.objects.get(id=id)
+        except IngredientsCategory.DoesNotExist:
+            raise CustomAPIException({'error': f'Category with ID {id} not found.'}, code=status.HTTP_404_NOT_FOUND)
+
+        serializer = IngredientsCategorySerializer(category)
+        return Response(serializer.data)
 
 class IngredientsCategoryDeleteAll(APIView):
+    def get(self, request, format=None):
+        ids = request.query_params.getlist('id')
+        categories = []
+
+        for id_str in ids:
+            try:
+                category = IngredientsCategory.objects.get(id=id_str)
+                categories.append(category)
+            except IngredientsCategory.DoesNotExist:
+                continue
+
+        if not categories:
+            raise CustomAPIException({"error": "No categories found with the provided IDs"}, code=status.HTTP_404_NOT_FOUND)
+
+        serializer = IngredientsCategorySerializer(categories, many=True)
+        return Response(serializer.data)
+
     def delete(self, request, format=None):
         ids = request.query_params.getlist('id')
         deleted_count = 0
@@ -358,11 +391,11 @@ class IngredientsCategoryDeleteAll(APIView):
                 category = IngredientsCategory.objects.get(id=id_str)
                 category.delete()
                 deleted_count += 1
-                deleted_objects.append(category)
+                deleted_objects.append(category.id)
             except IngredientsCategory.DoesNotExist:
                 continue
 
         return Response({
             "count": deleted_count,
-            "deleted_objects": [category.id for category in deleted_objects]
+            "deleted_objects": deleted_objects
         }, status=status.HTTP_200_OK)

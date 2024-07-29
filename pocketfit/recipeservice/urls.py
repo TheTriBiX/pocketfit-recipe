@@ -18,10 +18,10 @@ urlpatterns = [
     path('allergy/delete/<int:id>/', views.AllergyDeleteView.as_view(), name='allergy-delete'),
     path('user/allergy/', views.UserAllergyView.as_view(), name='user-allergy'),
     path('ingredients/category/create', views.IngredientsCategoryCreateView.as_view(), name='category-create'),
-    path('ingredients/category/<int:id>', views.IngredientsCategoryDetailView.as_view(), name='category-detail'),
+    path('ingredients/category/<uuid:id>', views.IngredientsCategoryDetailView.as_view(), name='category-detail'), # uuid
     path('ingredients/category/all', views.IngredientsCategoryListView.as_view(), name='category-list'),
     path('ingredients/category/search', views.IngredientsCategorySearchView.as_view(), name='category-search'),
-    path('ingredients/category/update/<int:id>', views.IngredientsCategoryUpdateView.as_view(), name='category-update'),
-    path('ingredients/category/delete/<int:id>', views.IngredientsCategoryDeleteView.as_view(), name='category-delete'),
-    path('ingredients/category/delete/all', views.IngredientsCategoryDeleteAll.as_view(), name='category-delete-all')
+    path('ingredients/category/update/<uuid:id>', views.IngredientsCategoryUpdateView.as_view(), name='category-update'),
+    path('ingredients/category/delete/<uuid:id>', views.IngredientsCategoryDeleteView.as_view(), name='category-delete'),
+    path('ingredients/category/delete/all', views.IngredientsCategoryDeleteAll.as_view(), name='category-delete-all') # Почему возвращает null
     ]

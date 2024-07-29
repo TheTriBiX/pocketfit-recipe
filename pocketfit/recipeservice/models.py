@@ -27,7 +27,7 @@ class Allergy(models.Model):
     class Meta:
         db_table = 'allergy'
 
-    id = models.AutoField(primary_key=True, auto_created=True)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
     translations = models.JSONField(null=True, blank=True)
     comment = models.TextField(null=True, blank=True)
@@ -45,11 +45,12 @@ class UserAllergy(models.Model):
     class Meta:
         db_table = 'user_allergy'
         unique_together = ('user_id', 'allergy_id')
-
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user_id = models.CharField(max_length=100)
     allergy_id = models.IntegerField()
 
 class IngredientsCategory(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
     ingredients = models.ManyToManyField(Ingredients, related_name='categories')
     translations = models.JSONField(null=True, blank=True)
