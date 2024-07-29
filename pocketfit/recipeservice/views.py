@@ -147,10 +147,10 @@ class AllergyCreateView(APIView):
             if Allergy.objects.filter(name=name).exists():
                 return CustomAPIException({"detail": "Allergy with this name already exists."}, code=status.HTTP_409_CONFLICT)
 
-            foods_data = serializer.validated_data.get('foods')
+            foods_data = serializer.validated_data.get('foods', [])
             for food_id in foods_data:
-                if not Ingredients.objects.filter(id=food_id).exists():
-                    return CustomAPIException({"detail": f"Ingredient with id {food_id} does not exist."}, code=status.HTTP_404_NOT_FOUND)
+                if not Ingredients.objects.filter(id=food_id.id).exists():
+                    return CustomAPIException({"detail": f"Ingredient with id {food_id.id} does not exist."}, code=status.HTTP_404_NOT_FOUND)
 
             allergy = serializer.save()
             return Response(AllergySerializerDRF(allergy).data, status=status.HTTP_201_CREATED)
@@ -203,6 +203,15 @@ class AllergySearchView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
 class AllergyUpdateView(APIView):
+    def get(self, request, id, format=None):
+        try:
+            allergy = get_object_or_404(Allergy, id=id)
+        except ValueError:
+            return CustomAPIException({"detail": "Invalid ID format."}, code=status.HTTP_400_BAD_REQUEST)
+
+        serializer = AllergySerializerDRF(allergy)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
     def patch(self, request, id, format=None):
         try:
             allergy = get_object_or_404(Allergy, id=id)
@@ -220,6 +229,13 @@ class AllergyUpdateView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class AllergyDeleteAllView(APIView):
+    """
+    Контролер для массового удаления
+    Требует в теле запроса allergy_ids
+     curl -X DELETE http://localhost:8000/recipe/allergy/delete/all/ \
+     -H "Content-Type: application/json" \
+     -d '{"allergy_ids": ["f5a90f75-790f-40d7-b7fc-1eca3e5e1508"]}'
+    """
     def delete(self, request, format=None):
         allergy_ids = request.data.get('allergy_ids', [])
 

@@ -143,8 +143,41 @@ class IngredientDestroyAllergySerializer:
 class IngredientsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ingredients
-        fields = '__all__'
+        fields = [
+            'id',
+            'name',
+            'translations',
+            'Squirrels',
+            'Fats',
+            'Carbohydrates',
+            'PFC',
+            'comment',
+            'same_ingridient',
+            'image'
+        ]
+        read_only_fields = ['id']
 
+    def validate_name(self, value):
+        if Ingredients.objects.filter(name=value.lower()).exists():
+            raise serializers.ValidationError("Ingredient with this name already exists.")
+        return value.lower()
+
+    def create(self, validated_data):
+        return Ingredients.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        instance.name = validated_data.get('name', instance.name)
+        instance.translations = validated_data.get('translations', instance.translations)
+        instance.Squirrels = validated_data.get('Squirrels', instance.Squirrels)
+        instance.Fats = validated_data.get('Fats', instance.Fats)
+        instance.Carbohydrates = validated_data.get('Carbohydrates', instance.Carbohydrates)
+        instance.PFC = validated_data.get('PFC', instance.PFC)
+        instance.comment = validated_data.get('comment', instance.comment)
+        instance.same_ingridient = validated_data.get('same_ingridient', instance.same_ingridient)
+        instance.image = validated_data.get('image', instance.image)
+        instance.save()
+        return instance
+    
 class AllergySerializerDRF(serializers.ModelSerializer):
     foods = serializers.PrimaryKeyRelatedField(many=True, queryset=Ingredients.objects.all(), required=False)
 
@@ -168,18 +201,6 @@ class AllergySerializerDRF(serializers.ModelSerializer):
         allergy = Allergy.objects.create(**validated_data)
         allergy.foods.set(foods_data)
         return allergy
-
-    def update(self, instance, validated_data):
-        if 'name' in validated_data:
-            instance.name = validated_data['name']
-        if 'translations' in validated_data:
-            instance.translations = validated_data['translations']
-        if 'comment' in validated_data:
-            instance.comment = validated_data['comment']
-        if 'foods' in validated_data:
-            instance.foods.set(validated_data['foods'])
-        instance.save()
-        return instance
 
 class UserAllergySerializer(serializers.ModelSerializer):
     class Meta:
