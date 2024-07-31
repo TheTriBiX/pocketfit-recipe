@@ -27,7 +27,7 @@ class Ingredients(models.Model):
     def clean(self):
         super().clean()
         url_pattern = re.compile(
-            r'^(http|https)://[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+/[a-zA-Z0-9-._?&=/]*$'
+            r'^(http|https)://[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+/[a-zA-Z0-9-._?&=/]*$' # Исправить реглярку 
         )
         if self.image and not url_pattern.match(self.image):
             raise ValidationError('Invalid URL format for image field.')
@@ -40,7 +40,7 @@ class Allergy(models.Model):
     name = models.CharField(max_length=255)
     translations = models.JSONField(null=True, blank=True)
     comment = models.TextField(null=True, blank=True)
-    foods = models.ManyToManyField(Ingredients, null=True, blank=True)
+    foods = models.ManyToManyField(Ingredients, blank=True)
     def __str__(self):
         return self.name
     def save(self, *args, **kwargs):
@@ -89,9 +89,10 @@ class Dish(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
     comment = models.TextField(null=True, blank=True)
-    components = models.JSONField(null=True, blank=True) # Это поле необходимо для того что бы передавать кол-во ин-ов
+    components = models.JSONField(null=True, blank=True)  # Это поле необходимо для того что бы передавать кол-во ин-ов
     translations = models.JSONField(null=True, blank=True)
-    white_list = models.ForeignKey("IngredientsCategory", null=True, blank=True, on_delete=models.CASCADE)
+    white_list = models.ForeignKey("IngredientsCategory", null=True, blank=True, on_delete=models.CASCADE, related_name='white_list_dishes')
+    ingredients = models.ForeignKey("IngredientsCategory", null=True, blank=True, on_delete=models.CASCADE, related_name='ingredient_dishes')
     image = models.CharField(max_length=255, null=True, blank=True)
 
     class Meta:
@@ -100,15 +101,15 @@ class Dish(models.Model):
     def clean(self):
         super().clean()
         url_pattern = re.compile(
-            r'^(http|https)://[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+/[a-zA-Z0-9-._?&=/]*$'
+            r'^(http|https)://[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+/[a-zA-Z0-9-._?&=/]*$' # Исправить реглярку 
         )
         if self.image and not url_pattern.match(self.image):
             raise ValidationError('Invalid URL format for image field.')
     def save(self, *args, **kwargs):
         if self.name:
             self.name = self.name.lower()
-        self.translations = {"ru": self.name}  # Здесь необходимо вместо ru вытягивать язык пользователя по умолчанию???
-        super(Allergy, self).save(*args, **kwargs)
+        self.translations = {"ru": self.name}
+        super(Dish, self).save(*args, **kwargs)
 
     def str(self):
         return self.name

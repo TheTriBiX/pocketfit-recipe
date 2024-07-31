@@ -473,3 +473,34 @@ class DishListView(APIView):
             "count": deleted_count,
             "deleted_objects": [dish.id for dish in deleted_objects]
         }, status=status.HTTP_200_OK)
+
+class DishDetailView(APIView):
+    def get(self, request, uuid):
+        try:
+            dish = get_object_or_404(Dish, id=uuid)
+        except ValueError:
+            raise CustomAPIException({"detail": "Invalid UUID format."}, code=status.HTTP_400_BAD_REQUEST)
+
+        serializer = DishSerializer(dish)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def patch(self, request, uuid):
+        try:
+            dish = get_object_or_404(Dish, id=uuid)
+        except ValueError:
+            raise CustomAPIException({"detail": "Invalid UUID format."}, code=status.HTTP_400_BAD_REQUEST)
+
+        serializer = DishSerializer(dish, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, uuid):
+        try:
+            dish = get_object_or_404(Dish, id=uuid)
+        except ValueError:
+            raise CustomAPIException({"detail": "Invalid UUID format."}, code=status.HTTP_400_BAD_REQUEST)
+
+        dish.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

@@ -26,4 +26,5 @@ urlpatterns = [
     path('ingredients/category/delete/all', views.IngredientsCategoryDeleteAll.as_view(), name='category-delete-all'),
     path('dish/create', views.DishCreateView.as_view(), name='dish-create'),
     path('dish/', views.DishListView.as_view(), name='dish-list'),
+    path('dish/<uuid:uuid>', views.DishDetailView.as_view(), name='dish-detail')
     ]

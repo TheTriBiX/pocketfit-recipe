@@ -254,4 +254,4 @@ class DishSerializer(serializers.ModelSerializer):
     class Meta:
         model = Dish
         fields = ['id', 'name', 'comment', 'components', 'translations', 'white_list', 'image']
-        read_only_fields = ['id']  # id генерируется автоматически и не должен быть изменяемым
+        read_only_fields = ['id']
