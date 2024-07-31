@@ -23,5 +23,7 @@ urlpatterns = [
     path('ingredients/category/search', views.IngredientsCategorySearchView.as_view(), name='category-search'),
     path('ingredients/category/update/<uuid:id>', views.IngredientsCategoryUpdateView.as_view(), name='category-update'),
     path('ingredients/category/delete/<uuid:id>', views.IngredientsCategoryDeleteView.as_view(), name='category-delete'),
-    path('ingredients/category/delete/all', views.IngredientsCategoryDeleteAll.as_view(), name='category-delete-all') # Почему возвращает null
+    path('ingredients/category/delete/all', views.IngredientsCategoryDeleteAll.as_view(), name='category-delete-all'),
+    path('dish/create', views.DishCreateView.as_view(), name='dish-create'),
+    path('dish/', views.DishListView.as_view(), name='dish-list'),
     ]

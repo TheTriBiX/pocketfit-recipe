@@ -1,5 +1,5 @@
 from django_grpc_framework import proto_serializers
-from recipeservice.models import Allergy, UserAllergy, Ingredients, IngredientsCategory
+from recipeservice.models import Allergy, UserAllergy, Ingredients, IngredientsCategory, Dish
 from rest_framework import serializers
 from recipe_proto import allergy_pb2
 import json
@@ -249,3 +249,9 @@ class IngredientsCategorySerializer(serializers.ModelSerializer):
             instance.translations = validated_data['translations']
         instance.save()
         return instance
+
+class DishSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Dish
+        fields = ['id', 'name', 'comment', 'components', 'translations', 'white_list', 'image']
+        read_only_fields = ['id']  # id генерируется автоматически и не должен быть изменяемым

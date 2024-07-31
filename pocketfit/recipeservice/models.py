@@ -1,5 +1,7 @@
-from django.db import models
 import uuid
+import re
+from django.core.exceptions import ValidationError
+from django.db import models
 
 class Ingredients(models.Model):
 
@@ -11,7 +13,7 @@ class Ingredients(models.Model):
     Carbohydrates = models.IntegerField(null=True, blank=True) 
     PFC = models.IntegerField(null=True, blank=True) # надо брать из рассчета на m(=100г?)
     comment = models.TextField(max_length=2000, null=True, blank=True)
-    same_ingridient = models.ForeignKey("self", related_name='related_ingridients', null=True, blank=True, on_delete=models.CASCADE)
+    same_ingridient = models.ForeignKey("self", related_name='related_ingridients', null=True, blank=True, on_delete=models.CASCADE) # Убрать это поле не нужно
     image = models.CharField(max_length=255, null=True, blank=True)
     class Meta:
         db_table = 'Ingredients'
@@ -22,6 +24,13 @@ class Ingredients(models.Model):
             self.name = self.name.lower()
         self.translations = {"ru" : self.name} # Здесь необходимо вместо ru вытягивать язык пользователя по умолчанию???   
         super(Ingredients, self).save(*args, **kwargs)
+    def clean(self):
+        super().clean()
+        url_pattern = re.compile(
+            r'^(http|https)://[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+/[a-zA-Z0-9-._?&=/]*$'
+        )
+        if self.image and not url_pattern.match(self.image):
+            raise ValidationError('Invalid URL format for image field.')
 
 class Allergy(models.Model):
     class Meta:
@@ -77,16 +86,29 @@ class IngredientsAllergy(models.Model):
     allergy_id = models.IntegerField(null=True, blank=True)
 
 class Dish(models.Model):
-    id = models.AutoField(primary_key=True)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
     comment = models.TextField(null=True, blank=True)
-    ingridients = models.JSONField(null=True, blank=True)
+    components = models.JSONField(null=True, blank=True) # Это поле необходимо для того что бы передавать кол-во ин-ов
     translations = models.JSONField(null=True, blank=True)
-    same_dish = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE)
+    white_list = models.ForeignKey("IngredientsCategory", null=True, blank=True, on_delete=models.CASCADE)
     image = models.CharField(max_length=255, null=True, blank=True)
 
     class Meta:
         db_table = 'dish'
+
+    def clean(self):
+        super().clean()
+        url_pattern = re.compile(
+            r'^(http|https)://[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+/[a-zA-Z0-9-._?&=/]*$'
+        )
+        if self.image and not url_pattern.match(self.image):
+            raise ValidationError('Invalid URL format for image field.')
+    def save(self, *args, **kwargs):
+        if self.name:
+            self.name = self.name.lower()
+        self.translations = {"ru": self.name}  # Здесь необходимо вместо ru вытягивать язык пользователя по умолчанию???
+        super(Allergy, self).save(*args, **kwargs)
 
     def str(self):
         return self.name
