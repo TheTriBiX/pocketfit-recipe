@@ -4,8 +4,8 @@ from django.db import transaction, IntegrityError
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Ingredients, Allergy, UserAllergy, IngredientsCategory, Dish
-from .serializers import IngredientsSerializer, AllergySerializerDRF, UserAllergySerializer, IngredientsCategorySerializer, DishSerializer
+from .models import DishCategory, Ingredients, Allergy, UserAllergy, IngredientsCategory, Dish
+from .serializers import DishCategorySerializer, IngredientsSerializer, AllergySerializerDRF, UserAllergySerializer, IngredientsCategorySerializer, DishSerializer
 import uuid
 from django.shortcuts import get_object_or_404
 from .exception_handler import CustomAPIException, CustomAPIExceptionAllergy
@@ -504,3 +504,133 @@ class DishDetailView(APIView):
 
         dish.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+class DishCategoryCreateView(APIView):
+    def post(self, request, format=None):
+        serializer = DishCategorySerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            if 'name' in serializer.errors and 'unique' in str(serializer.errors['name'][0]):
+                raise CustomAPIException({'error': 'Category with this name already exists.'}, code=status.HTTP_409_CONFLICT)
+            raise CustomAPIException(serializer.errors, code=status.HTTP_400_BAD_REQUEST)
+
+class DishCategoryDetailView(APIView):
+    def get(self, request, id, format=None):
+        try:
+            category = DishCategory.objects.get(id=id)
+        except DishCategory.DoesNotExist:
+            raise CustomAPIException({'error': f'Category with ID {id} not found.'}, code=status.HTTP_404_NOT_FOUND)
+
+        serializer = DishCategorySerializer(category)
+        return Response(serializer.data)
+
+class DishCategoryListView(APIView):
+    def get(self, request):
+        count = int(request.query_params.get('count', 10))
+        offset_id = request.query_params.get('offset_id', None)
+
+        if offset_id:
+            try:
+                offset_category = DishCategory.objects.get(id=offset_id)
+                categories = DishCategory.objects.filter(id__gt=offset_category.id)[:count]
+            except DishCategory.DoesNotExist:
+                raise CustomAPIException({"error": "Invalid offset_id"}, code=status.HTTP_400_BAD_REQUEST)
+        else:
+            categories = DishCategory.objects.all()[:count]
+
+        serializer = DishCategorySerializer(categories, many=True)
+        return Response(serializer.data)
+    
+class DishCategorySearchView(APIView):
+    def get(self, request):
+        substring = request.query_params.get('substring', None)
+        
+        if not substring:
+            return CustomAPIException({'error': 'Substring parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        substring = substring.lower()
+        
+        categories = DishCategory.objects.filter(name__icontains=substring)
+        serializer = DishCategorySerializer(categories, many=True)
+        return Response(serializer.data)
+
+class DishCategoryUpdateView(APIView):
+    def get(self, request, id):
+        try:
+            category = DishCategory.objects.get(id=id)
+        except DishCategory.DoesNotExist:
+            raise CustomAPIException({'error': f'Category with ID {id} not found.'}, code=status.HTTP_404_NOT_FOUND)
+
+        serializer = DishCategorySerializer(category)
+        return Response(serializer.data)
+    def patch(self, request, id):
+        try:
+            category = DishCategory.objects.get(id=id)
+        except DishCategory.DoesNotExist:
+            raise CustomAPIException({'error': f'Category with ID {id} not found.'}, code=status.HTTP_404_NOT_FOUND)
+
+        serializer = DishCategorySerializer(category, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            if 'name' in serializer.errors and 'unique' in str(serializer.errors['name'][0]):
+                raise CustomAPIException({"error": "Name already exists"}, code=status.HTTP_409_CONFLICT)
+            raise CustomAPIException(serializer.errors, code=status.HTTP_400_BAD_REQUEST)
+        
+class DishCategoryDeleteView(APIView):
+    def delete(self, request, id):
+        try:
+            category = DishCategory.objects.get(id=id)
+        except DishCategory.DoesNotExist:
+            raise CustomAPIException({'error': f'Category with ID {id} not found.'}, code=status.HTTP_404_NOT_FOUND)
+
+        category.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    def get(self, request, id):
+        try:
+            category = DishCategory.objects.get(id=id)
+        except DishCategory.DoesNotExist:
+            raise CustomAPIException({'error': f'Category with ID {id} not found.'}, code=status.HTTP_404_NOT_FOUND)
+
+        serializer = DishCategorySerializer(category)
+        return Response(serializer.data)
+
+class DishCategoryDeleteAll(APIView):
+    def get(self, request, format=None):
+        ids = request.query_params.getlist('id')
+        categories = []
+
+        for id_str in ids:
+            try:
+                category = DishCategory.objects.get(id=id_str)
+                categories.append(category)
+            except DishCategory.DoesNotExist:
+                continue
+
+        if not categories:
+            raise CustomAPIException({"error": "No categories found with the provided IDs"}, code=status.HTTP_404_NOT_FOUND)
+
+        serializer = DishCategorySerializer(categories, many=True)
+        return Response(serializer.data)
+
+    def delete(self, request, format=None):
+        ids = request.query_params.getlist('id')
+        deleted_count = 0
+        deleted_objects = []
+
+        for id_str in ids:
+            try:
+                category = DishCategory.objects.get(id=id_str)
+                category.delete()
+                deleted_count += 1
+                deleted_objects.append(category.id)
+            except DishCategory.DoesNotExist:
+                continue
+
+        return Response({
+            "count": deleted_count,
+            "deleted_objects": deleted_objects
+        }, status=status.HTTP_200_OK)

@@ -1,5 +1,5 @@
 from django_grpc_framework import proto_serializers
-from recipeservice.models import Allergy, UserAllergy, Ingredients, IngredientsCategory, Dish
+from recipeservice.models import Allergy, DishCategory, UserAllergy, Ingredients, IngredientsCategory, Dish
 from rest_framework import serializers
 from recipe_proto import allergy_pb2
 import json
@@ -255,3 +255,42 @@ class DishSerializer(serializers.ModelSerializer):
         model = Dish
         fields = ['id', 'name', 'comment', 'components', 'translations', 'white_list', 'image']
         read_only_fields = ['id']
+
+class DishCategorySerializer(serializers.ModelSerializer):
+    ingredients = serializers.PrimaryKeyRelatedField(many=True, queryset=Dish.objects.all())
+
+    class Meta:
+        model = DishCategory
+        fields = ['id', 'name', 'dish', 'translations']
+        read_only_fields = ['id']
+
+    def validate_name(self, value):
+        if DishCategory.objects.filter(name=value.lower()).exists():
+            raise serializers.ValidationError("Category with this name already exists.")
+        return value.lower()
+
+    def validate_id(self, value):
+        if value and not isinstance(value, uuid.UUID):
+            raise serializers.ValidationError("Invalid UUID format.")
+        return value
+
+    def validate_translations(self, value):
+        if value and not isinstance(value, dict):
+            raise serializers.ValidationError("Translations must be a JSON object.")
+        return value
+
+    def create(self, validated_data):
+        dish = validated_data.pop('dish', [])
+        category = DishCategory.objects.create(**validated_data)
+        category.dish.set(dish)
+        return category
+
+    def update(self, instance, validated_data):
+        if 'name' in validated_data:
+            instance.name = validated_data['name']
+        if 'dish' in validated_data:
+            instance.dish.set(validated_data['dish'])
+        if 'translations' in validated_data:
+            instance.translations = validated_data['translations']
+        instance.save()
+        return instance

@@ -101,7 +101,7 @@ class Dish(models.Model):
     def clean(self):
         super().clean()
         url_pattern = re.compile(
-            r'^(http|https)://[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+/[a-zA-Z0-9-._?&=/]*$' # Исправить реглярку 
+            r'/\b((http|https|ftp):\/\/[-\w@:%_+.~#?,&\/=]*[-\w@:%_+.~#?&\/=])\b/gm' # Исправить реглярку 
         )
         if self.image and not url_pattern.match(self.image):
             raise ValidationError('Invalid URL format for image field.')
@@ -113,3 +113,21 @@ class Dish(models.Model):
 
     def str(self):
         return self.name
+    
+class DishCategory(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=255)
+    dish = models.ForeignKey(Dish, related_name='dish')
+    translations = models.JSONField(null=True, blank=True)
+
+    class Meta:
+        db_table = 'dish_category'
+
+    def __str__(self):
+        return self.name
+
+    def save(self, *args, **kwargs):
+        if self.name:
+            self.name = self.name.lower()
+        self.translations = {"ru": self.name}
+        super().save(*args, **kwargs)
