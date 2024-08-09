@@ -117,7 +117,7 @@ class Dish(models.Model):
 class DishCategory(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
-    dish = models.ForeignKey(Dish, related_name='dish')
+    dish = models.ForeignKey(Dish, null=True, blank=True, on_delete=models.CASCADE, related_name='dish')
     translations = models.JSONField(null=True, blank=True)
 
     class Meta:
