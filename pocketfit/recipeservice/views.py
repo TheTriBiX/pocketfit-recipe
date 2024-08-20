@@ -60,11 +60,11 @@ class IngredientsSearchView(APIView):
         substring = request.query_params.get('substring', None)
         
         if not substring:
-            return CustomAPIException({'error': 'Substring parameter is required'}, code=status.HTTP_400_BAD_REQUEST)
+            raise CustomAPIException({'error': 'Substring parameter is required'}, code=status.HTTP_400_BAD_REQUEST)
         
         # Проверка, что substring является строкой
         if not isinstance(substring, str):
-            return CustomAPIException({'error': 'Substring must be a string'}, code=status.HTTP_400_BAD_REQUEST)
+            raise CustomAPIException({'error': 'Substring must be a string'}, code=status.HTTP_400_BAD_REQUEST)
         
         # Переводим substring в нижний регистр
         substring = substring.lower()
