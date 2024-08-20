@@ -1,11 +1,6 @@
-import environ
 from django.urls import path, include
 from recipeservice import views
 
-env = environ.Env(
-    # set casting, default value
-    DEBUG=(bool, False),
-)
 
 urlpatterns = [
     path('ingredients/create/',views.IngredientsCreateView.as_view(), name='ingredients_create'),
@@ -41,6 +36,3 @@ urlpatterns = [
     path('dish/category/delete/<uuid:id>/', views.DishCategoryDeleteView.as_view(), name='dish-category-delete'),
     path('dish/category/delete/all/', views.DishCategoryDeleteAll.as_view(), name='dish-category-delete-all')
     ]
-
-if env("URL_PREFIX"):
-    urlpatterns = [ path(env("URL_PREFIX"), include(urlpatterns))]
