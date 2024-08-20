@@ -36,6 +36,8 @@ ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split("|")
 if '127.0.0.1' not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append('127.0.0.1')
 
+APPEND_SLASH = True
+
 # Application definition
 
 INSTALLED_APPS = [
