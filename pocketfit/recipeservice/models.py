@@ -11,7 +11,7 @@ class Ingredients(models.Model):
     Squirrels = models.IntegerField(null=True, blank=True)
     Fats = models.IntegerField(null=True, blank=True)
     Carbohydrates = models.IntegerField(null=True, blank=True) 
-    PFC = models.IntegerField(null=True, blank=True) # надо брать из рассчета на m(=100г?)
+    сalories = models.IntegerField(null=True, blank=True) # надо брать из рассчета на m(=100г?)
     comment = models.TextField(max_length=2000, null=True, blank=True)
     same_ingridient = models.ForeignKey("self", related_name='related_ingridients', null=True, blank=True, on_delete=models.CASCADE) # Убрать это поле не нужно
     image = models.CharField(max_length=255, null=True, blank=True)
@@ -88,12 +88,14 @@ class IngredientsAllergy(models.Model):
 class Dish(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
-    comment = models.TextField(null=True, blank=True)
+    recipe = models.TextField(null=True, blank=True)
     components = models.JSONField(null=True, blank=True)  # Это поле необходимо для того что бы передавать кол-во ин-ов
     translations = models.JSONField(null=True, blank=True)
     white_list = models.ForeignKey("IngredientsCategory", null=True, blank=True, on_delete=models.CASCADE, related_name='white_list_dishes')
     ingredients = models.ForeignKey("IngredientsCategory", null=True, blank=True, on_delete=models.CASCADE, related_name='ingredient_dishes')
     image = models.CharField(max_length=255, null=True, blank=True)
+    full_time = models.CharField(max_length=255, null=True)
+    bizy_time = models.CharField(max_length=255, null=True)
 
     class Meta:
         db_table = 'dish'

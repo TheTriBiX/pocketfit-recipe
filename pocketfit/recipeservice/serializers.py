@@ -150,8 +150,8 @@ class IngredientsSerializer(serializers.ModelSerializer):
             'Squirrels',
             'Fats',
             'Carbohydrates',
-            'PFC',
-            'comment',
+            'calories',
+            'recipe',
             'same_ingridient',
             'image'
         ]
@@ -171,8 +171,8 @@ class IngredientsSerializer(serializers.ModelSerializer):
         instance.Squirrels = validated_data.get('Squirrels', instance.Squirrels)
         instance.Fats = validated_data.get('Fats', instance.Fats)
         instance.Carbohydrates = validated_data.get('Carbohydrates', instance.Carbohydrates)
-        instance.PFC = validated_data.get('PFC', instance.PFC)
-        instance.comment = validated_data.get('comment', instance.comment)
+        instance.calories = validated_data.get('calories', instance.calories)
+        instance.recipe = validated_data.get('recipe', instance.recipe)
         instance.same_ingridient = validated_data.get('same_ingridient', instance.same_ingridient)
         instance.image = validated_data.get('image', instance.image)
         instance.save()
@@ -253,7 +253,7 @@ class IngredientsCategorySerializer(serializers.ModelSerializer):
 class DishSerializer(serializers.ModelSerializer):
     class Meta:
         model = Dish
-        fields = ['id', 'name', 'comment', 'components', 'translations', 'white_list', 'image']
+        fields = ['id', 'name', 'recipe', 'components', 'translations', 'white_list', 'image', 'full_time', 'bizy_time']
         read_only_fields = ['id']
 
 class DishCategorySerializer(serializers.ModelSerializer):
